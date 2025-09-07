@@ -81,13 +81,13 @@ export class GmailService {
     };
   }
 
-  private static findTextPart(parts: any[]): any {
+  private static findTextPart(parts: Array<{ mimeType: string; body?: { data?: string }; parts?: Array<unknown> }>): { body?: { data?: string } } | null {
     for (const part of parts) {
       if (part.mimeType === 'text/plain' || part.mimeType === 'text/html') {
         return part;
       }
       if (part.parts) {
-        const nestedPart = this.findTextPart(part.parts);
+        const nestedPart = this.findTextPart(part.parts as Array<{ mimeType: string; body?: { data?: string }; parts?: Array<unknown> }>);
         if (nestedPart) return nestedPart;
       }
     }

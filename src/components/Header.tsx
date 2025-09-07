@@ -4,6 +4,7 @@ import { signOut, useSession } from 'next-auth/react';
 import { useState } from 'react';
 import { Mail, LogOut, Menu, X } from 'lucide-react';
 import { SyncSettings } from './SyncSettings';
+import Image from 'next/image';
 
 export function Header() {
   const { data: session } = useSession();
@@ -54,9 +55,11 @@ export function Header() {
 
             <div className="flex items-center space-x-3">
               {session?.user?.image && (
-                <img
+                <Image
                   src={session.user.image}
                   alt={session.user.name || 'User'}
+                  width={32}
+                  height={32}
                   className="h-8 w-8 rounded-full"
                 />
               )}
@@ -98,9 +101,11 @@ export function Header() {
               <div className="flex items-center justify-between px-4 py-3 bg-gray-50 rounded-lg">
                 <div className="flex items-center space-x-3">
                   {session?.user?.image && (
-                    <img
+                    <Image
                       src={session.user.image}
                       alt={session.user.name || 'User'}
+                      width={32}
+                      height={32}
                       className="h-8 w-8 rounded-full"
                     />
                   )}

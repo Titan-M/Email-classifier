@@ -1,6 +1,11 @@
 import { NextAuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
-import { createServerSupabaseClient } from './supabase';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY! // needs service role for inserts/updates
+);
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -15,30 +20,28 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async signIn({ account, profile, user }) {
+    async signIn({ account, profile }) {
       if (account?.provider === 'google' && profile?.email) {
         try {
-          const supabase = createServerSupabaseClient();
-          
-          // Use account.providerAccountId as the unique identifier
-          const userId = account.providerAccountId;
-          
-          // Check if user profile exists, create if not
           const { data: existingProfile, error: fetchError } = await supabase
             .from('user_profiles')
             .select('*')
             .eq('email', profile.email)
-            .maybeSingle(); // Use maybeSingle to handle no results gracefully
+            .maybeSingle();
+
+          if (fetchError) {
+            console.error('Error fetching user profile:', fetchError);
+            return false;
+          }
 
           if (!existingProfile) {
-            // Create new user profile with proper UUID generation
             const { error: insertError } = await supabase
               .from('user_profiles')
               .insert({
-                id: userId, // Use provider account ID
                 email: profile.email,
                 full_name: profile.name || null,
-                avatar_url: profile.picture || null,
+                avatar_url: profile.image || null,
+                google_id: account.providerAccountId,
                 gmail_refresh_token: account.refresh_token || null,
               });
 
@@ -47,13 +50,12 @@ export const authOptions: NextAuthOptions = {
               return false;
             }
           } else if (account.refresh_token) {
-            // Update refresh token if it exists
             await supabase
               .from('user_profiles')
               .update({
                 gmail_refresh_token: account.refresh_token,
                 full_name: profile.name || existingProfile.full_name,
-                avatar_url: profile.picture || existingProfile.avatar_url,
+                avatar_url: profile.image || existingProfile.avatar_url,
               })
               .eq('email', profile.email);
           }
@@ -67,11 +69,10 @@ export const authOptions: NextAuthOptions = {
       return true;
     },
     async jwt({ token, account, profile }) {
-      // Persist the OAuth access_token and user info
       if (account) {
         token.accessToken = account.access_token;
         token.refreshToken = account.refresh_token;
-        token.userId = account.providerAccountId; // Store the provider account ID
+        token.userId = account.providerAccountId;
       }
       if (profile) {
         token.email = profile.email;
@@ -79,7 +80,6 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
     async session({ session, token }) {
-      // Send properties to the client
       if (session.user && token.userId) {
         session.user.id = token.userId as string;
         session.accessToken = token.accessToken as string;
@@ -95,4 +95,6 @@ export const authOptions: NextAuthOptions = {
   session: {
     strategy: 'jwt',
   },
+  secret: process.env.NEXTAUTH_SECRET,
+  useSecureCookies: process.env.NODE_ENV === 'production',
 };

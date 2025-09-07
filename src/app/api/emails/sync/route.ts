@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
+import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { GmailService } from '@/lib/gmail';
 import { EmailClassifier } from '@/lib/ai-classifier';

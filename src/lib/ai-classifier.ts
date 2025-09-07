@@ -50,7 +50,7 @@ Email Body: ${body}`;
       console.log('AI Response:', text); // Debug log
 
       // Clean the response text
-      let cleanText = text.trim();
+      const cleanText = text.trim();
       
       // Try to extract JSON from various formats
       let jsonStr = '';
@@ -117,7 +117,6 @@ Email Body: ${body}`;
 
   private getFallbackCategory(subject: string, body: string): EmailCategory {
     const text = (subject + ' ' + body).toLowerCase();
-    const senderLower = '';
     
     // Finance keywords
     const financeKeywords = ['bank', 'credit', 'payment', 'invoice', 'bill', 'statement', 'account', 'transaction', 'balance', 'due', 'paypal', 'visa', 'mastercard', 'amex', 'financial'];

@@ -106,7 +106,7 @@ export function Inbox() {
     if (currentPage > 1) {
       fetchEmails(selectedCategory === 'All' ? undefined : selectedCategory, currentPage);
     }
-  }, [currentPage]);
+  }, [currentPage, selectedCategory]);
 
   const handleCategoryChange = (category: EmailCategory | 'All') => {
     setSelectedCategory(category);
