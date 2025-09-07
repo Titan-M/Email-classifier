@@ -9,6 +9,6 @@
     }
   },
   "env": {
-    "NEXTAUTH_URL": "@nextauth_url"
+    "NEXTAUTH_URL": "https://email-classifier.vercel.app"
   }
 }
