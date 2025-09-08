@@ -2,6 +2,25 @@ import { NextAuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import { createClient } from '@supabase/supabase-js';
 
+// Log the status of environment variables for debugging on Vercel
+console.log('--- Checking Environment Variables ---');
+const requiredEnvVars = {
+  NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+  SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+  GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+  NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
+};
+
+for (const [key, value] of Object.entries(requiredEnvVars)) {
+  if (value) {
+    console.log(`[✔] ${key} is loaded.`);
+  } else {
+    console.error(`[❌] ${key} is MISSING or empty.`);
+  }
+}
+console.log('------------------------------------');
+
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY! // needs service role for inserts/updates
@@ -34,14 +53,14 @@ export const authOptions: NextAuthOptions = {
             return false;
           }
 
-          if (!existingProfile) {
+          if (!existingProfile && profile.sub) {
             const { error: insertError } = await supabase
               .from('user_profiles')
               .insert({
-                email: profile.email,
+                id: profile.sub, // Use Google's unique user ID as our primary key
+                email: profile.email!,
                 full_name: profile.name || null,
-                avatar_url: profile.image || null,
-                google_id: account.providerAccountId,
+                avatar_url: (profile as any).picture || null,
                 gmail_refresh_token: account.refresh_token || null,
               });
 
