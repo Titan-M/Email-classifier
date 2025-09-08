@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Email, EmailCategory } from '@/types/email';
 import { EmailList } from './EmailList';
 import { CategoryTabs } from './CategoryTabs';
@@ -32,12 +32,17 @@ export function Inbox() {
   const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
   const [currentPage, setCurrentPage] = useState(1);
   const [pagination, setPagination] = useState<PaginationInfo>({ page: 1, limit: 10, total: 0, pages: 0 });
-  const [cache, setCache] = useState<Record<string, { data: any; timestamp: number }>>({});
+  interface CacheData {
+    emails: Email[];
+    pagination: PaginationInfo;
+  }
+
+  const [cache, setCache] = useState<Record<string, { data: CacheData; timestamp: number }>>({});
   
   // Cache duration in milliseconds (5 minutes)
   const CACHE_DURATION = 5 * 60 * 1000;
 
-  const fetchWithCache = async (url: string, cacheKey: string) => {
+  const fetchWithCache = useCallback(async (url: string, cacheKey: string) => {
     const now = Date.now();
     // Check if we have a cached version that's still valid
     if (cache[cacheKey] && now - cache[cacheKey].timestamp < CACHE_DURATION) {
@@ -57,9 +62,9 @@ export function Inbox() {
     }));
     
     return data;
-  };
+  }, [cache, CACHE_DURATION]);
 
-  const fetchEmails = async (category?: EmailCategory, page: number = 1) => {
+  const fetchEmails = useCallback(async (category?: EmailCategory, page: number = 1) => {
     setLoading(true);
     try {
       const params = new URLSearchParams({
@@ -90,9 +95,9 @@ export function Inbox() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [fetchWithCache, cache]);
 
-  const fetchCategoryCounts = async () => {
+  const fetchCategoryCounts = useCallback(async () => {
     try {
       // Fetch all counts in parallel
       const [totalResponse, ...categoryResponses] = await Promise.all([
@@ -115,7 +120,7 @@ export function Inbox() {
     } catch (error) {
       console.error('Error fetching category counts:', error);
     }
-  };
+  }, [fetchWithCache]);
 
   // Initial load and when category changes
   useEffect(() => {
@@ -132,7 +137,7 @@ export function Inbox() {
     };
     
     loadData();
-  }, [selectedCategory]);
+  }, [selectedCategory, fetchCategoryCounts, fetchEmails]);
 
   // Handle pagination changes
   useEffect(() => {
@@ -143,7 +148,7 @@ export function Inbox() {
     };
     
     fetchPage();
-  }, [currentPage, selectedCategory]);
+  }, [currentPage, selectedCategory, fetchEmails]);
 
   const handleCategoryChange = (category: EmailCategory | 'All') => {
     setSelectedCategory(category);
