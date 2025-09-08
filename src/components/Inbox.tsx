@@ -32,33 +32,61 @@ export function Inbox() {
   const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
   const [currentPage, setCurrentPage] = useState(1);
   const [pagination, setPagination] = useState<PaginationInfo>({ page: 1, limit: 10, total: 0, pages: 0 });
+  const [cache, setCache] = useState<Record<string, { data: any; timestamp: number }>>({});
+  
+  // Cache duration in milliseconds (5 minutes)
+  const CACHE_DURATION = 5 * 60 * 1000;
+
+  const fetchWithCache = async (url: string, cacheKey: string) => {
+    const now = Date.now();
+    // Check if we have a cached version that's still valid
+    if (cache[cacheKey] && now - cache[cacheKey].timestamp < CACHE_DURATION) {
+      return cache[cacheKey].data;
+    }
+
+    // If not in cache or cache expired, fetch fresh data
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Failed to fetch data');
+    
+    const data = await response.json();
+    
+    // Update cache
+    setCache(prev => ({
+      ...prev,
+      [cacheKey]: { data, timestamp: now }
+    }));
+    
+    return data;
+  };
 
   const fetchEmails = async (category?: EmailCategory, page: number = 1) => {
     setLoading(true);
     try {
       const params = new URLSearchParams({
         page: page.toString(),
-        limit: '10'
+        limit: '10',
+        _t: Date.now().toString() // Cache buster for development
       });
       
       if (category) {
         params.append('category', category);
       }
       
-      const url = `/api/emails?${params.toString()}`;
-      const response = await fetch(url);
+      const cacheKey = `emails-${category || 'all'}-${page}`;
+      const data = await fetchWithCache(`/api/emails?${params.toString()}`, cacheKey);
       
-      if (response.ok) {
-        const data = await response.json();
-        setEmails(data.emails);
-        setPagination(data.pagination);
-      } else {
-        console.error('Failed to fetch emails');
-        setEmails([]);
-      }
+      setEmails(data.emails);
+      setPagination(data.pagination);
     } catch (error) {
       console.error('Error fetching emails:', error);
-      setEmails([]);
+      // If fetch fails, try to use cached data if available
+      const cacheKey = `emails-${category || 'all'}-${page}`;
+      if (cache[cacheKey]) {
+        setEmails(cache[cacheKey].data.emails);
+        setPagination(cache[cacheKey].data.pagination);
+      } else {
+        setEmails([]);
+      }
     } finally {
       setLoading(false);
     }
@@ -66,27 +94,20 @@ export function Inbox() {
 
   const fetchCategoryCounts = async () => {
     try {
-      // Fetch counts for each category
-      const promises = CATEGORIES.map(async (category) => {
-        const response = await fetch(`/api/emails?category=${encodeURIComponent(category)}&limit=1`);
-        if (response.ok) {
-          const data = await response.json();
-          return { category, count: data.pagination.total };
-        }
-        return { category, count: 0 };
-      });
+      // Fetch all counts in parallel
+      const [totalResponse, ...categoryResponses] = await Promise.all([
+        fetchWithCache('/api/emails?limit=1', 'email-count-all'),
+        ...CATEGORIES.map(category => 
+          fetchWithCache(`/api/emails?category=${encodeURIComponent(category)}&limit=1`, `email-count-${category}`)
+        )
+      ]);
 
-      // Also fetch total count
-      const totalResponse = await fetch('/api/emails?limit=1');
-      let totalCount = 0;
-      if (totalResponse.ok) {
-        const data = await totalResponse.json();
-        totalCount = data.pagination.total;
-      }
-
-      const counts = await Promise.all(promises);
-      const countMap = counts.reduce((acc, { category, count }) => {
-        acc[category] = count;
+      // Process total count
+      const totalCount = totalResponse?.pagination?.total || 0;
+      
+      // Process category counts
+      const countMap = CATEGORIES.reduce((acc, category, index) => {
+        acc[category] = categoryResponses[index]?.pagination?.total || 0;
         return acc;
       }, { All: totalCount } as Record<string, number>);
       
@@ -96,16 +117,32 @@ export function Inbox() {
     }
   };
 
+  // Initial load and when category changes
   useEffect(() => {
-    fetchCategoryCounts();
-    setCurrentPage(1); // Reset to first page when category changes
-    fetchEmails(selectedCategory === 'All' ? undefined : selectedCategory, 1);
+    setCurrentPage(1);
+    const loadData = async () => {
+      try {
+        await Promise.all([
+          fetchCategoryCounts(),
+          fetchEmails(selectedCategory === 'All' ? undefined : selectedCategory, 1)
+        ]);
+      } catch (error) {
+        console.error('Error loading data:', error);
+      }
+    };
+    
+    loadData();
   }, [selectedCategory]);
 
+  // Handle pagination changes
   useEffect(() => {
-    if (currentPage > 1) {
-      fetchEmails(selectedCategory === 'All' ? undefined : selectedCategory, currentPage);
-    }
+    const fetchPage = async () => {
+      if (currentPage > 0) { // Changed from > 1 to > 0 to always fetch on mount
+        await fetchEmails(selectedCategory === 'All' ? undefined : selectedCategory, currentPage);
+      }
+    };
+    
+    fetchPage();
   }, [currentPage, selectedCategory]);
 
   const handleCategoryChange = (category: EmailCategory | 'All') => {

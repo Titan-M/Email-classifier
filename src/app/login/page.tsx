@@ -10,13 +10,21 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    getSession().then((session) => {
-      if (session) {
-        router.push('/dashboard');
-      } else {
+    const checkSession = async () => {
+      try {
+        const session = await getSession();
+        if (session) {
+          router.push('/dashboard');
+        } else {
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error('Session check error:', error);
         setIsLoading(false);
       }
-    });
+    };
+    
+    checkSession();
   }, [router]);
 
   const handleGoogleSignIn = async () => {

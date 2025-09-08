@@ -61,15 +61,15 @@ export function EmailCard({ email, onDelete }: EmailCardProps) {
 
   return (
     <div className={cn(
-      'group bg-white/60 backdrop-blur-sm border border-white/30 rounded-2xl p-5 hover:bg-white/80 hover:shadow-lg hover:shadow-blue-100/50 transition-all duration-300 transform hover:-translate-y-0.5',
+      'group bg-white/60 backdrop-blur-sm border border-white/30 rounded-2xl p-4 sm:p-5 hover:bg-white/80 hover:shadow-lg hover:shadow-blue-100/50 transition-all duration-300 transform hover:-translate-y-0.5',
       isDeleting && 'opacity-50 scale-95'
     )}>
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
-          <div className="flex items-center flex-wrap gap-2 mb-3">
+          <div className="flex items-center flex-wrap gap-2 mb-2 sm:mb-3">
             {email.priority && (
               <span className={cn(
-                'inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold shadow-sm',
+                'inline-flex items-center px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-semibold shadow-sm',
                 priorityColors[email.priority]
               )}>
                 <div className={cn(
@@ -90,46 +90,48 @@ export function EmailCard({ email, onDelete }: EmailCardProps) {
             )}
           </div>
           
-          <h3 className="text-base font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-gray-800 transition-colors">
+          <h3 className="text-sm sm:text-base font-semibold text-gray-900 mb-1 sm:mb-2 line-clamp-2 group-hover:text-gray-800 transition-colors">
             {email.subject}
           </h3>
           
-          <div className="flex items-center text-sm text-gray-600 mb-2">
-            <div className="w-6 h-6 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center mr-2 flex-shrink-0">
-              <span className="text-xs font-semibold text-blue-700">
+          <div className="flex items-center text-xs sm:text-sm text-gray-600 mb-1 sm:mb-2">
+            <div className="w-5 h-5 sm:w-6 sm:h-6 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center mr-1.5 sm:mr-2 flex-shrink-0">
+              <span className="text-[10px] sm:text-xs font-semibold text-blue-700">
                 {email.sender.charAt(0).toUpperCase()}
               </span>
             </div>
-            <span className="truncate">{email.sender}</span>
+            <span className="truncate text-xs sm:text-sm">{email.sender}</span>
           </div>
           
-          <div className="flex items-center text-xs text-gray-500">
-            <Calendar className="h-3.5 w-3.5 mr-1.5 text-gray-400" />
+          <div className="flex items-center text-[10px] sm:text-xs text-gray-500">
+            <Calendar className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-1 sm:mr-1.5 text-gray-400" />
             {formatDate(email.received_at)}
           </div>
         </div>
 
-        <div className="flex items-center space-x-1 ml-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-          <button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-all duration-200"
-            title={isExpanded ? 'Collapse' : 'Expand'}
-          >
-            {isExpanded ? (
-              <ChevronUp className="h-4 w-4" />
-            ) : (
-              <ChevronDown className="h-4 w-4" />
-            )}
-          </button>
-          
-          <button
-            onClick={handleDelete}
-            disabled={isDeleting}
-            className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all duration-200 disabled:opacity-50"
-            title="Delete email"
-          >
-            <Trash2 className="h-4 w-4" />
-          </button>
+        <div className="flex items-center justify-end sm:justify-start space-x-1 sm:ml-4 mt-2 sm:mt-0 opacity-100 transition-opacity duration-200">
+          <div className="flex space-x-1">
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-all duration-200 active:bg-gray-200"
+              title={isExpanded ? 'Collapse' : 'Expand'}
+            >
+              {isExpanded ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+            </button>
+            
+            <button
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="p-2 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all duration-200 active:bg-red-100 disabled:opacity-50"
+              title="Delete email"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       </div>
 
