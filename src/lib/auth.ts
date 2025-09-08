@@ -60,7 +60,7 @@ export const authOptions: NextAuthOptions = {
                 id: profile.sub, // Use Google's unique user ID as our primary key
                 email: profile.email!,
                 full_name: profile.name || null,
-                avatar_url: (profile as any).picture || null,
+                avatar_url: profile.image || null,
                 gmail_refresh_token: account.refresh_token || null,
               });
 
