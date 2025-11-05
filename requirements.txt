@@ -1,20 +1,22 @@
 # Python dependencies for email classification model training and serving
 
 # Core ML libraries
-scikit-learn==1.3.2
-pandas==2.1.4
-numpy==1.26.2
-joblib==1.3.2
+scikit-learn==1.2.2
+pandas==2.0.3
+numpy==1.24.4
+joblib==1.2.0
 
 # API Server
-flask==3.0.0
+flask==2.3.3
 flask-cors==4.0.0
+Werkzeug==2.3.7
+gunicorn==21.2.0
 
 # Visualization (for Jupyter notebook)
-matplotlib==3.8.2
-seaborn==0.13.0
+matplotlib==3.7.2
+seaborn==0.12.2
 
-# Jupyter support
+# Jupyter support (only needed for development)
 jupyter==1.0.0
 notebook==7.0.6
 

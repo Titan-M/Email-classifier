@@ -2,12 +2,20 @@ services:
   - type: web
     name: email-classifier-api
     env: python
-    buildCommand: pip install -r python-service/requirements.txt
-    startCommand: gunicorn python-service.classifier_api:app --chdir python-service
+    buildCommand: |
+      pip install --upgrade pip
+      pip install -r requirements.txt
+      python -m pip install --upgrade pip
+      python -m pip install --upgrade setuptools wheel
+      python -m pip install -r requirements.txt
+    startCommand: gunicorn python-service.classifier_api:app --chdir python-service --timeout 120
     envVars:
       - key: PYTHON_VERSION
-        value: 3.9.0
+        value: 3.9.18
+      - key: PIP_ONLY_BINARY
+        value: "scikit-learn"
     plan: free
     numInstances: 1
     regions: ["oregon"]
     healthCheckPath: /health
+    autoDeploy: yes
