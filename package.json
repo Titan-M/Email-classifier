@@ -14,7 +14,6 @@
     "@headlessui/react": "^2.2.7",
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.57.2",
-    "@types/python-shell": "^0.4.2",
     "@vercel/python": "^6.0.1",
     "ai": "^5.0.34",
     "clsx": "^2.1.1",
@@ -22,7 +21,6 @@
     "lucide-react": "^0.542.0",
     "next": "15.5.2",
     "next-auth": "^4.24.11",
-    "python-shell": "^5.0.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "tailwind-merge": "^3.3.1"
