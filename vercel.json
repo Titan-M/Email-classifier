@@ -9,6 +9,7 @@
     }
   },
   "env": {
-    "NEXTAUTH_URL": "https://email-classifier.vercel.app"
+    "NEXTAUTH_URL": "https://email-classifier.vercel.app",
+    "NEXT_PUBLIC_API_URL": "https://email-classifier-y1xm.onrender.com"
   }
 }
