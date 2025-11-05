@@ -1,6 +1,4 @@
 import { NextResponse } from 'next/server';
-import { PythonShell, PythonShellError } from 'python-shell';
-import path from 'path';
 
 export const config = {
   runtime: 'edge',
