@@ -178,7 +178,40 @@ def index():
         'model_info': metadata
     })
 
+def predict_from_cli(text):
+    """Make prediction from command line input"""
+    try:
+        processed_text = preprocess_text(text)
+        features = tfidf_vectorizer.transform([processed_text])
+        
+        category = category_model.predict(features)[0]
+        priority = priority_model.predict(features)[0]
+        
+        result = {
+            'category': str(category),
+            'priority': str(priority),
+            'model_version': metadata.get('created_at', 'unknown')
+        }
+        return result
+    except Exception as e:
+        return {'error': str(e)}
+
 if __name__ == '__main__':
+    import sys
+    
+    # Check if running in prediction mode
+    if '--predict' in sys.argv:
+        try:
+            data = json.loads(sys.argv[sys.argv.index('--predict') + 1])
+            text = f"{data.get('subject', '')} {data.get('body', '')}"
+            result = predict_from_cli(text)
+            print(json.dumps(result))
+            sys.exit(0)
+        except Exception as e:
+            print(json.dumps({'error': str(e)}))
+            sys.exit(1)
+    
+    # Otherwise start the Flask server
     print("\n" + "="*80)
     print("🚀 Email Classifier API Server")
     print("="*80)
@@ -187,6 +220,8 @@ if __name__ == '__main__':
     print("  GET  /health          - Health check")
     print("  POST /classify        - Classify single email")
     print("  POST /classify/batch  - Classify multiple emails")
+    print("\nCommand line usage:")
+    print("  python classifier_api.py --predict '{\"subject\":\"Hello\",\"body\":\"Test email\"}'")
     print("\nPress Ctrl+C to stop the server")
     print("="*80 + "\n")
     

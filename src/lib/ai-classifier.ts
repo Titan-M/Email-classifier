@@ -53,7 +53,7 @@ export class EmailClassifier {
    */
   private async classifyWithMLModel(subject: string, body: string, sender: string): Promise<{ category: EmailCategory; priority: 'High' | 'Medium' | 'Low' }> {
     try {
-      const response = await fetch(`${PYTHON_API_URL}/classify`, {
+      const response = await fetch('/api/classify', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -66,7 +66,8 @@ export class EmailClassifier {
       });
 
       if (!response.ok) {
-        throw new Error(`Python API returned ${response.status}: ${response.statusText}`);
+        const error = await response.text();
+        throw new Error(`Classification API returned ${response.status}: ${error}`);
       }
 
       const data = await response.json();
@@ -74,7 +75,6 @@ export class EmailClassifier {
       console.log('✅ ML Model classification:', {
         category: data.category,
         priority: data.priority,
-        confidence: `${(data.category_confidence * 100).toFixed(1)}%`
       });
 
       // Validate the response
