@@ -8,6 +8,7 @@ services:
       python -m pip install --upgrade setuptools wheel
       python -m pip install -r requirements.txt --no-cache-dir
       python train_model.py
+      ls -R
     startCommand: pwd && gunicorn classifier_api:app --timeout 120
     envVars:
       - key: PIP_ONLY_BINARY
