@@ -7,7 +7,7 @@ export class EmailClassifier {
   private model;
 
   constructor() {
-    this.model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    this.model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
   }
 
   /**
