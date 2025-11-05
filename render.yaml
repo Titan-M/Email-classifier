@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: email-classifier-api
+    env: python
+    buildCommand: pip install -r python-service/requirements.txt
+    startCommand: gunicorn python-service.classifier_api:app --chdir python-service
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9.0
+    plan: free
+    numInstances: 1
+    regions: ["oregon"]
+    healthCheckPath: /health
