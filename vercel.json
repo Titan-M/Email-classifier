@@ -4,11 +4,8 @@
   "devCommand": "npm run dev",
   "installCommand": "npm install",
   "functions": {
-    "src/app/api/classify/route.ts": {
+    "src/app/api/**/*.ts": {
       "runtime": "edge",
-      "maxDuration": 30
-    },
-    "app/api/**/*.ts": {
       "maxDuration": 30
     }
   },

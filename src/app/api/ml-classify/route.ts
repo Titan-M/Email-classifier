@@ -1,13 +1,8 @@
 import { NextResponse } from 'next/server';
 
-export const config = {
-  runtime: 'edge',
-};
+export const runtime = 'edge';
 
-export default async function handler(req: Request) {
-  if (req.method !== 'POST') {
-    return new NextResponse('Method not allowed', { status: 405 });
-  }
+export async function POST(req: Request) {
 
   try {
     const { subject = '', body = '', sender = 'unknown@example.com' } = await req.json();
@@ -36,8 +31,8 @@ export default async function handler(req: Request) {
     return NextResponse.json(result);
   } catch (error) {
     console.error('Error in ML classification:', error);
-    return new NextResponse(
-      JSON.stringify({ error: 'Failed to process classification' }),
+    return NextResponse.json(
+      { error: 'Failed to process classification' },
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }

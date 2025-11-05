@@ -1,52 +1,35 @@
 import { NextResponse } from 'next/server';
-import { spawn } from 'child_process';
-import path from 'path';
 
-export const config = {
-  runtime: 'edge',
-};
+export const runtime = 'edge';
 
-export default async function handler(req: Request) {
-  if (req.method !== 'POST') {
-    return new NextResponse('Method not allowed', { status: 405 });
-  }
+// This is a placeholder for the classification logic
+// In a real implementation, you would call your ML model here
+async function classifyEmail({ subject, body, sender }: { subject: string; body: string; sender: string }) {
+  // This is a mock implementation - replace with actual ML model inference
+  const categories = ['work', 'personal', 'spam', 'newsletter'];
+  const randomCategory = categories[Math.floor(Math.random() * categories.length)];
+  
+  return {
+    category: randomCategory,
+    confidence: Math.random(),
+    subject,
+    sender,
+    body: body.substring(0, 100) + '...' // Return a preview
+  };
+}
 
+export async function POST(req: Request) {
   try {
     const { subject = '', body = '', sender = 'unknown@example.com' } = await req.json();
     
-    // Path to the Python script
-    const scriptPath = path.join(process.cwd(), 'python-service', 'classifier_api.py');
+    // Call the classification function
+    const result = await classifyEmail({ subject, body, sender });
     
-    // Run the Python script
-    const result = await new Promise((resolve, reject) => {
-      const python = spawn('python', [scriptPath, '--predict', JSON.stringify({ subject, body, sender })]);
-      let result = '';
-
-      python.stdout.on('data', (data) => {
-        result += data.toString();
-      });
-
-      python.stderr.on('data', (data) => {
-        console.error(`Python error: ${data}`);
-      });
-
-      python.on('close', (code) => {
-        if (code !== 0) {
-          return reject(new Error(`Python script exited with code ${code}`));
-        }
-        try {
-          resolve(JSON.parse(result));
-        } catch (e) {
-          reject(e);
-        }
-      });
-    });
-
     return NextResponse.json(result);
   } catch (error) {
-    console.error('Error in ML classification:', error);
-    return new NextResponse(
-      JSON.stringify({ error: 'Failed to process classification' }),
+    console.error('Error in classification:', error);
+    return NextResponse.json(
+      { error: 'Failed to process classification' },
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
