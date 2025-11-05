@@ -3,12 +3,12 @@ services:
     name: email-classifier-api
     env: python
     buildCommand: |\
-      pwd
       which python && python --version
       python -m pip install --upgrade pip
       python -m pip install --upgrade setuptools wheel
       python -m pip install -r requirements.txt --no-cache-dir
-    startCommand: gunicorn python-service.classifier_api:app --chdir python-service --timeout 120
+      python train_model.py
+    startCommand: pwd && gunicorn classifier_api:app --timeout 120
     envVars:
       - key: PIP_ONLY_BINARY
         value: "scikit-learn"
