@@ -16,23 +16,34 @@ CORS(app)  # Enable CORS for Next.js
 
 # Load models at startup
 MODEL_DIR = Path(__file__).parent.parent / 'models'
-
 print("Loading models...")
 try:
-    category_model = joblib.load(MODEL_DIR / 'category_classifier.pkl')
-    priority_model = joblib.load(MODEL_DIR / 'priority_classifier.pkl')
-    tfidf_vectorizer = joblib.load(MODEL_DIR / 'tfidf_vectorizer.pkl')
-    
-    with open(MODEL_DIR / 'model_metadata.json', 'r') as f:
+    category_path = MODEL_DIR / 'category_classifier.pkl'
+    priority_path = MODEL_DIR / 'priority_classifier.pkl'
+    vectorizer_path = MODEL_DIR / 'tfidf_vectorizer.pkl'
+    metadata_path = MODEL_DIR / 'model_metadata.json'
+
+    # Check if all files exist
+    if not all(p.exists() for p in [category_path, priority_path, vectorizer_path, metadata_path]):
+        print("⚠️  Model files missing. Running train_model.py...")
+        import subprocess
+        subprocess.run(["python", str(Path(__file__).parent.parent / "train_model.py")], check=True)
+
+    # Now load them
+    category_model = joblib.load(category_path)
+    priority_model = joblib.load(priority_path)
+    tfidf_vectorizer = joblib.load(vectorizer_path)
+    with open(metadata_path, 'r') as f:
         metadata = json.load(f)
-    
+
     print("✅ Models loaded successfully!")
     print(f"   Category classes: {category_model.classes_}")
     print(f"   Priority classes: {priority_model.classes_}")
+
 except Exception as e:
-    print(f"❌ Error loading models: {e}")
-    print("Please run train_model.py first to create the models.")
+    print(f"❌ Error ensuring models are ready: {e}")
     raise
+
 
 def preprocess_text(text):
     """Clean and preprocess text (must match training preprocessing)"""
